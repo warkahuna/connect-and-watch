@@ -19,6 +19,8 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // Middleware
 app.use(cors());
 app.use(express.json()); // Parse JSON bodies
+app.use("/", express.static(__dirname, { etag: true, maxAge: "3d" }));
+app.use(express.static(__dirname + "/build"));
 
 // Create HTTP server and integrate Socket.io
 const server = http.createServer(app);
@@ -44,9 +46,9 @@ io.on("connection", (socket) => {
 });
 
 // Basic Route for Testing
-app.get("/", (req, res) => {
+/*app.get("/", (req, res) => {
   res.send("Server is running...");
-});
+});*/
 
 // Set up routes (import your route files here)
 app.use("/api/auth", require("./routes/authRoutes"));

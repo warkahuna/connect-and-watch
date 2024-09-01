@@ -5,48 +5,47 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { useParams } from "react-router-dom";
 import { uploadVideoApi } from "../../services/api";
+import "../../styles/VideoPlayer.css";
+
+const SYNC_THRESHOLD = 0.5; // Allowable difference in seconds before resyncing
 
 const VideoPlayer: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const userRedux = useSelector((state: RootState) => state.auth.user);
   const [videoUrl, setVideoUrl] = useState<string>("");
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [isControlledExternally, setIsControlledExternally] =
-    useState<boolean>(false);
   const playerRef = useRef<ReactPlayer | null>(null);
 
   useEffect(() => {
-    // Listen for when a video is added
     socket.on(
       "videoAdded",
       (data: { roomId: string; videoUrl: string; type: string }) => {
         if (data.roomId === roomId) {
           setVideoUrl(data.videoUrl);
-          setIsPlaying(false); // Ensure video does not auto-play after URL is set
+          setIsPlaying(false); // Reset playing state when a new video is added
         }
       }
     );
 
     socket.on("playVideo", (data: { roomId: string; time: number }) => {
-      console.log("hi");
-
-      if (data.roomId === roomId) {
-        setIsControlledExternally(true); // Prevent loop
-        playerRef.current?.seekTo(data.time, "seconds");
+      if (data.roomId === roomId && playerRef.current) {
+        const currentTime = playerRef.current.getCurrentTime() || 0;
+        if (Math.abs(currentTime - data.time) > SYNC_THRESHOLD) {
+          playerRef.current.seekTo(data.time, "seconds");
+        }
         setIsPlaying(true); // Start playing the video
       }
     });
 
     socket.on("pauseVideo", (data: { roomId: string }) => {
       if (data.roomId === roomId) {
-        setIsControlledExternally(true); // Prevent loop
         setIsPlaying(false); // Pause the video
       }
     });
 
     socket.on("seekVideo", (data: { roomId: string; time: number }) => {
-      if (data.roomId === roomId) {
-        playerRef.current?.seekTo(data.time, "seconds");
+      if (data.roomId === roomId && playerRef.current) {
+        playerRef.current.seekTo(data.time, "seconds");
       }
     });
 
@@ -64,8 +63,8 @@ const VideoPlayer: React.FC = () => {
     socket.emit("videoAdded", {
       roomId,
       videoUrl: url,
-      userId: userRedux.id,
-      type: "direct", // Assume direct URL for now
+      //userId: userRedux.id,
+      type: "direct",
     });
   };
 
@@ -74,20 +73,20 @@ const VideoPlayer: React.FC = () => {
     if (file) {
       const formData = new FormData();
       formData.append("videoFile", file);
-      formData.append("roomId", "" + roomId);
+      formData.append("roomId", roomId as string);
       formData.append("userId", userRedux.id);
       formData.append("username", userRedux.username);
       formData.append("type", "upload");
 
       try {
-        const response = await uploadVideoApi("" + roomId, formData);
+        const response = await uploadVideoApi(roomId as string, formData);
         const uploadedUrl = response.data.video.videoUrl;
         setVideoUrl(uploadedUrl);
         socket.emit("videoAdded", {
           roomId,
           videoUrl: uploadedUrl,
-          userId: userRedux.id,
-          type: "upload", // Mark this as an upload
+          //userId: userRedux.id,
+          type: "upload",
         });
       } catch (error) {
         console.error("Error uploading video:", error);
@@ -96,22 +95,16 @@ const VideoPlayer: React.FC = () => {
   };
 
   const handlePlay = () => {
-    if (!isControlledExternally) {
-      const time = playerRef.current?.getCurrentTime();
-      if (time !== undefined) {
-        socket.emit("playVideo", { roomId, time });
-      }
-    } else {
-      setIsControlledExternally(false);
+    const time = playerRef.current?.getCurrentTime();
+    if (time !== undefined) {
+      socket.emit("playVideo", { roomId, time });
+      setIsPlaying(true);
     }
   };
 
   const handlePause = () => {
-    if (!isControlledExternally) {
-      socket.emit("pauseVideo", { roomId });
-    } else {
-      setIsControlledExternally(false);
-    }
+    socket.emit("pauseVideo", { roomId });
+    setIsPlaying(false);
   };
 
   const handleSeek = (time: number) => {
@@ -119,23 +112,27 @@ const VideoPlayer: React.FC = () => {
   };
 
   return (
-    <div>
-      <input
-        type="text"
-        placeholder="Paste video URL here"
-        value={videoUrl}
-        onChange={handleUrlChange}
-      />
-      <input type="file" accept="video/*" onChange={handleFileChange} />
-      <ReactPlayer
-        ref={playerRef}
-        url={videoUrl}
-        playing={isPlaying} // Control playing state with the internal state
-        controls
-        onPlay={handlePlay}
-        onPause={handlePause}
-        onSeek={(seconds) => handleSeek(seconds)}
-      />
+    <div className="video-player-container">
+      <div className="video-player-content">
+        <div className="input-row">
+          <input
+            type="text"
+            placeholder="Paste video URL here"
+            value={videoUrl}
+            onChange={handleUrlChange}
+          />
+          <input type="file" accept="video/*" onChange={handleFileChange} />
+        </div>
+        <ReactPlayer
+          ref={playerRef}
+          url={videoUrl}
+          playing={isPlaying}
+          controls
+          onPlay={handlePlay}
+          onPause={handlePause}
+          onSeek={(seconds) => handleSeek(seconds)}
+        />
+      </div>
     </div>
   );
 };

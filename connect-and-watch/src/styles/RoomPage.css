@@ -1,0 +1,66 @@
+.room-page {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr; /* Three columns: VideoQueue, VideoPlayer, ChatBox */
+  grid-template-rows: auto 1fr auto; /* Rows: AdminControls, Main Content, History */
+  gap: 20px; /* Gap between grid items */
+  height: 100vh; /* Full viewport height */
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Card styling for each section */
+.card {
+  background-color: #333333;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+/* VideoQueue on the left side */
+.video-queue {
+  grid-column: 1;
+  grid-row: 1 / 4; /* Spans all rows */
+  border-right: 1px solid #ddd; /* Divider line */
+  padding: 10px;
+  overflow-y: auto;
+}
+
+/* VideoPlayer in the center */
+.video-player {
+  grid-column: 2;
+  grid-row: 2; /* Middle row */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+
+/* ChatBox and AdminControls on the right side */
+.chat-section {
+  grid-column: 3;
+  grid-row: 1 / 4; /* Spans all rows */
+  border-left: 1px solid #ddd; /* Divider line */
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+/* AdminControls will be placed on top of the ChatBox */
+.admin-controls {
+  margin-bottom: 20px;
+}
+
+/* History at the bottom */
+.history-section {
+  grid-column: 1 / 4; /* Spans all columns */
+  grid-row: 3;
+  padding: 10px;
+  background-color: #f9f9f9; /* Slight background color */
+  overflow-y: auto;
+  max-height: 200px; /* Max height for the history section */
+}

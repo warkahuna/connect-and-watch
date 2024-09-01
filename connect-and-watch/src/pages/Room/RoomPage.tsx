@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import VideoPlayer from "../../components/Video/VideoPlayer";
 import AdminControls from "../../components/Admin/AdminControls";
 import VideoQueue from "../../components/Video/VideoQueue";
@@ -8,7 +8,7 @@ import { useSelector } from "react-redux";
 import { RootState, useAppDispatch } from "../../store/store";
 import { fetchRoomData, joinRoomAction } from "../../store/slices/roomSlice";
 import socket from "../../services/socket";
-
+import "../../styles/RoomPage.css";
 const RoomPage: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const dispatch = useAppDispatch();
@@ -32,12 +32,19 @@ const RoomPage: React.FC = () => {
     return <div>Loading...</div>;
   }
   return (
-    <div>
-      <h2>Room</h2>
-      <VideoPlayer />
-      <VideoQueue />
-      <ChatBox />
-      <AdminControls />
+    <div className="room-page">
+      <div className="card video-queue">
+        <VideoQueue />
+      </div>
+      <div className="card video-player">
+        <VideoPlayer />
+      </div>
+      <div className="card chat-section">
+        <div className="admin-controls">
+          <AdminControls />
+        </div>
+        <ChatBox />
+      </div>
     </div>
   );
 };

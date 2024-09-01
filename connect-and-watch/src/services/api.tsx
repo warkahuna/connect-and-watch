@@ -30,4 +30,8 @@ export const getRoomData = (roomId: string) => {
   return api.get(`/rooms/get-room-data/${roomId}`);
 };
 
+export const listVideosApi = (roomId: string) => {
+  return api.get(`/videos/${roomId}/videos`);
+};
+
 export default api;

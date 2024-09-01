@@ -1,17 +1,17 @@
 import React from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "../../store/store";
+/*import { useSelector } from "react-redux";
+import { RootState } from "../../store/store";*/
+import { closeRoomApi } from "../../services/api";
+import { useParams } from "react-router-dom";
 
 const AdminControls: React.FC = ({}) => {
-  const roomId = useSelector((state: RootState) => state.room.currentRoom);
+  //const roomIdRedux = useSelector((state: RootState) => state.room.currentRoom);
+  const { roomId } = useParams<{ roomId: string }>();
 
   const handleCloseRoom = async () => {
-    const response = await fetch("/api/rooms/close", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roomId }),
-    });
-    const data = await response.json();
+    const response = await closeRoomApi("" + roomId);
+    const data = await response.data;
+    console.log("close room", data);
     // Handle the response, update UI accordingly
   };
 
@@ -25,6 +25,8 @@ const AdminControls: React.FC = ({}) => {
       body: JSON.stringify({ targetUserId, isAuthenticated }),
     });
     const data = await response.json();
+    console.log("remove user", data);
+
     // Handle the response, update UI accordingly
   };
 

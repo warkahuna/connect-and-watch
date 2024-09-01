@@ -34,4 +34,8 @@ export const listVideosApi = (roomId: string) => {
   return api.get(`/videos/${roomId}/videos`);
 };
 
+export const closeRoomApi = (roomId: string) => {
+  return api.post(`/rooms/close`, { roomId });
+};
+
 export default api;

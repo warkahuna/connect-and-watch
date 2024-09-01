@@ -4,7 +4,7 @@ const HistoryPage: React.FC = () => {
   return (
     <div>
       <h2>History</h2>
-      <VideoHistory />
+      {/*<VideoHistory />*/}
     </div>
   );
 };

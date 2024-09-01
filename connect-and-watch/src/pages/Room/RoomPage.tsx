@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import VideoPlayer from "../../components/Video/VideoPlayer";
 import AdminControls from "../../components/Admin/AdminControls";
 import VideoQueue from "../../components/Video/VideoQueue";

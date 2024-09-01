@@ -55,7 +55,7 @@ const roomSlice = createSlice({
       state.videos = action.payload.videos;
       state.chatHistory = action.payload.chatHistory;
     });
-    builder.addCase(fetchRoomData.rejected, (state, action) => {
+    builder.addCase(fetchRoomData.rejected, (state) => {
       // handle error
       console.error(state);
     });

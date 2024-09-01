@@ -1,4 +1,4 @@
-const Room = require("../models/Room"); // Assuming you have a Room model
+const Room = require("../models/Room");
 
 module.exports = (io, socket) => {
   socket.on("videoAdded", async (data) => {
@@ -6,7 +6,7 @@ module.exports = (io, socket) => {
 
     let videoPath;
     if (type === "upload") {
-      videoPath = videoUrl; // In this case, videoUrl would be the file URL
+      videoPath = videoUrl;
     } else if (type === "youtube" || type === "direct") {
       videoPath = videoUrl;
     } else {
@@ -33,10 +33,13 @@ module.exports = (io, socket) => {
       type: type,
     };
 
-    room.videos.push(video);
-    await room.save();
+    if (videoUrl.length > 0) {
+      room.videos.push(video);
+      await room.save();
+    }
 
     const addedVideo = room.videos[room.videos.length - 1];
+    console.log(data);
 
     io.to(roomId).emit("videoAdded", {
       roomId,
@@ -44,18 +47,74 @@ module.exports = (io, socket) => {
       videoId: addedVideo._id,
       type: type,
       uploadedBy: uploader,
+      videosList: room.videos,
+    });
+  });
+
+  // Handle when a video from the queue is selected to play
+  socket.on("playQueueVideo", (data) => {
+    const { roomId, videoUrl, time, videoId, type } = data;
+
+    console.log("playQueueVideo", data);
+    io.to(roomId).emit("videoAdded", {
+      roomId,
+      videoUrl: videoUrl,
+      videoId: videoId,
+      type: type,
+      //uploadedBy: uploader,
+    });
+
+    // Emit playQueueVideo event to all clients in the room to play the selected video
+    io.to(roomId).emit("playQueueVideo", { roomId, videoUrl, time });
+  });
+
+  // Handle when a video gets added to queue
+  socket.on("addToQueue", async (data) => {
+    const { roomId, videoUrl, time, videoId, type, username } = data;
+    const room = await Room.findOne({ roomId });
+    if (!room) {
+      socket.emit("error", { message: "Room not found" });
+      return;
+    }
+    const userUploader = room.participants.find(
+      (el) => el.username === username
+    );
+
+    const uploader = userUploader?._id;
+    const video = {
+      videoUrl: videoUrl,
+      uploadedBy: uploader,
+      uploadedAt: Date.now(),
+      type: type,
+    };
+    if (videoUrl.length > 0) {
+      room.videos.push(video);
+      await room.save();
+    }
+    const addedVideo = room.videos[room.videos.length - 1];
+
+    console.log("addToQueue", data);
+    io.to(roomId).emit("addToQueue", {
+      roomId,
+      videoUrl: videoUrl,
+      videoId: addedVideo._id,
+      type: type,
+      videosList: room.videos,
+      //uploadedBy: uploader,
     });
   });
 
   socket.on("playVideo", (data) => {
     console.log("playVideo", data);
 
+    // Emit play only if the video is currently paused
     io.to(data.roomId).emit("playVideo", data);
   });
 
   socket.on("pauseVideo", (data) => {
     console.log("pauseVideo", data);
 
+    // Emit pause only if the video is currently playing
     io.to(data.roomId).emit("pauseVideo", data);
   });
 
@@ -70,7 +129,6 @@ module.exports = (io, socket) => {
       return;
     }
 
-    // Check if the user is the creator
     if (room.creator.userId !== userId) {
       socket.emit("error", {
         message: "Only the room creator can delete videos",

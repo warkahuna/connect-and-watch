@@ -20,7 +20,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(cors());
 app.use(express.json()); // Parse JSON bodies
 app.use("/", express.static(__dirname, { etag: true, maxAge: "3d" }));
-app.use(express.static(__dirname + "/build"));
+app.use(express.static(__dirname + "/dist"));
 
 // Create HTTP server and integrate Socket.io
 const server = http.createServer(app);

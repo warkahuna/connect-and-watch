@@ -4,6 +4,7 @@ const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const fs = require("fs");
 const mongoose = require("mongoose");
+require("dotenv").config();
 
 // @route   POST /api/videos/:roomId/upload
 // @desc    Upload a video to a room
@@ -17,7 +18,7 @@ exports.uploadVideo = async (req, res) => {
     let videoPath;
     if (type === "upload") {
       videoPath = req.file
-        ? `http://localhost:5000/uploads/videos/${req.file.filename}`
+        ? `${process.env.STORAGE_URL}/uploads/videos/${req.file.filename}`
         : null;
       if (!videoPath) {
         return res.status(400).json({ message: "Video file is missing" });
